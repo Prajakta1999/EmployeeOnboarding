@@ -2,6 +2,7 @@ package com.elearning.projects.elearn.service;
 
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.elearning.projects.elearn.dto.*;
@@ -24,6 +25,7 @@ public class CourseService {
     private final EnrollmentRepository enrollmentRepository;
     private final ModuleRepository moduleRepository;
     private final ModelMapper modelMapper;
+    private final EnrollmentService enrollmentService;
 
     public CourseResponseDto createCourse(CreateCourseRequestDto requestDto, Long instructorId) {
         User instructor = userRepository.findById(instructorId)
@@ -101,52 +103,68 @@ public class CourseService {
         return mapToCourseResponseDto(course);
     }
 
+    // public List<CourseResponseDto> getAvailableCourses() {
+    // List<Course> courses = courseRepository.findCoursesWithPublishedModules();
+    // return courses.stream()
+    // .map(this::mapToCourseResponseDto)
+    // .collect(Collectors.toList());
+    // }
+
     public List<CourseResponseDto> getAvailableCourses() {
-        List<Course> courses = courseRepository.findCoursesWithPublishedModules();
-        return courses.stream()
-                .map(this::mapToCourseResponseDto)
-                .collect(Collectors.toList());
+        return enrollmentService.getAvailableCoursesForStudent(null); // Or create separate method
     }
+
+    // public void enrollStudent(Long courseId, Long studentId) {
+    // User student = userRepository.findById(studentId)
+    // .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+
+    // Course course = courseRepository.findById(courseId)
+    // .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+
+    // if (!student.getRoles().contains(Role.STUDENT)) {
+    // throw new UnAuthorisedException("Only students can enroll in courses");
+    // }
+
+    // // Check if course has published modules
+    // long publishedModulesCount =
+    // moduleRepository.countByCourseIdAndIsPublishedTrue(courseId);
+    // if (publishedModulesCount == 0) {
+    // throw new RuntimeException("Cannot enroll in course without published
+    // modules");
+    // }
+
+    // if (enrollmentRepository.findByStudentIdAndCourseId(studentId,
+    // courseId).isPresent()) {
+    // throw new RuntimeException("Student is already enrolled in this course");
+    // }
+
+    // Enrollment enrollment = new Enrollment();
+    // enrollment.setStudent(student);
+    // enrollment.setCourse(course);
+    // enrollmentRepository.save(enrollment);
+    // }
 
     public void enrollStudent(Long courseId, Long studentId) {
-        User student = userRepository.findById(studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
-
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
-
-        if (!student.getRoles().contains(Role.STUDENT)) {
-            throw new UnAuthorisedException("Only students can enroll in courses");
-        }
-
-        // Check if course has published modules
-        long publishedModulesCount = moduleRepository.countByCourseIdAndIsPublishedTrue(courseId);
-        if (publishedModulesCount == 0) {
-            throw new RuntimeException("Cannot enroll in course without published modules");
-        }
-
-        if (enrollmentRepository.findByStudentIdAndCourseId(studentId, courseId).isPresent()) {
-            throw new RuntimeException("Student is already enrolled in this course");
-        }
-
-        Enrollment enrollment = new Enrollment();
-        enrollment.setStudent(student);
-        enrollment.setCourse(course);
-        enrollmentRepository.save(enrollment);
+        enrollmentService.enrollStudent(courseId, studentId);
     }
 
+    // public List<CourseResponseDto> getStudentEnrolledCourses(Long studentId) {
+    // User student = userRepository.findById(studentId)
+    // .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+
+    // if (!student.getRoles().contains(Role.STUDENT)) {
+    // throw new UnAuthorisedException("Only students can view enrolled courses");
+    // }
+
+    // List<Enrollment> enrollments =
+    // enrollmentRepository.findByStudentId(studentId);
+    // return enrollments.stream()
+    // .map(enrollment -> mapToCourseResponseDto(enrollment.getCourse()))
+    // .collect(Collectors.toList());
+    // }
+
     public List<CourseResponseDto> getStudentEnrolledCourses(Long studentId) {
-        User student = userRepository.findById(studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
-
-        if (!student.getRoles().contains(Role.STUDENT)) {
-            throw new UnAuthorisedException("Only students can view enrolled courses");
-        }
-
-        List<Enrollment> enrollments = enrollmentRepository.findByStudentId(studentId);
-        return enrollments.stream()
-                .map(enrollment -> mapToCourseResponseDto(enrollment.getCourse()))
-                .collect(Collectors.toList());
+        return enrollmentService.getStudentEnrolledCourses(studentId);
     }
 
     private CourseResponseDto mapToCourseResponseDto(Course course) {

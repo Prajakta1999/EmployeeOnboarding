@@ -2,6 +2,8 @@ package com.elearning.projects.elearn.repository;
 
 import com.elearning.projects.elearn.entity.ModuleProgress;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -30,4 +32,16 @@ public interface ModuleProgressRepository extends JpaRepository<ModuleProgress, 
     List<ModuleProgress> findByStudentIdAndModuleCourseId(Long studentId, Long courseId);
 
     long countByModuleId(Long moduleId);
+
+    long countByStudentIdAndModuleIdInAndIsCompletedTrue(Long studentId, List<Long> moduleIds);
+
+    long countByModuleIdAndStudentIdInAndIsCompletedTrue(Long moduleId, List<Long> studentIds);
+
+    List<ModuleProgress> findByStudentIdAndIsCompletedTrue(Long studentId);
+
+    List<ModuleProgress> findByModuleIdAndIsCompletedTrue(Long moduleId);
+
+    @Query("SELECT mp FROM ModuleProgress mp WHERE mp.student.id = :studentId AND mp.module.id IN :moduleIds")
+    List<ModuleProgress> findByStudentIdAndModuleIds(@Param("studentId") Long studentId,
+            @Param("moduleIds") List<Long> moduleIds);
 }

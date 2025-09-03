@@ -30,6 +30,33 @@ public class ModuleService {
     private final EnrollmentRepository enrollmentRepository;
     private final ModelMapper modelMapper;
 
+    public ModuleResponseDto createModule(CreateModuleRequestDto requestDto, Long instructorId) {
+        User instructor = userRepository.findById(instructorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor not found"));
+
+        if (!instructor.getRoles().contains(Role.INSTRUCTOR)) {
+            throw new UnAuthorisedException("Only instructors can create modules");
+        }
+
+        Course course = courseRepository.findById(requestDto.getCourseId())
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+
+        if (!course.getInstructor().getId().equals(instructorId)) {
+            throw new UnAuthorisedException("You can only create modules for your own courses");
+        }
+
+        modelMapper.typeMap(CreateModuleRequestDto.class, Module.class)
+                .addMappings(mapper -> mapper.skip(Module::setId));
+
+        Module module = modelMapper.map(requestDto, Module.class);
+
+        module.setCourse(course);
+        module.setIsPublished(false); // Default unpublished
+        module = moduleRepository.save(module);
+
+        return mapToModuleResponseDto(module, null);
+    }
+
     // public ModuleResponseDto createModule(CreateModuleRequestDto requestDto, Long
     // instructorId) {
     // User instructor = userRepository.findById(instructorId)
@@ -47,44 +74,21 @@ public class ModuleService {
     // courses");
     // }
 
-    // Module module = modelMapper.map(requestDto, Module.class);
+    // // --- REVISED LOGIC ---
+    // // 1. Create a new, empty Module instance.
+    // Module module = new Module();
+    // // 2. Use ModelMapper to copy properties from the DTO to the new instance.
+    // // This avoids the problematic implicit mapping of 'courseId' to 'course.id'.
+    // modelMapper.map(requestDto, module);
+
+    // // 3. Manually set the managed Course entity.
     // module.setCourse(course);
     // module.setIsPublished(false); // Default unpublished
-    // module = moduleRepository.save(module);
 
-    // return mapToModuleResponseDto(module, null);
+    // Module savedModule = moduleRepository.save(module);
+
+    // return mapToModuleResponseDto(savedModule, null);
     // }
-
-    public ModuleResponseDto createModule(CreateModuleRequestDto requestDto, Long instructorId) {
-        User instructor = userRepository.findById(instructorId)
-                .orElseThrow(() -> new ResourceNotFoundException("Instructor not found"));
-
-        if (!instructor.getRoles().contains(Role.INSTRUCTOR)) {
-            throw new UnAuthorisedException("Only instructors can create modules");
-        }
-
-        Course course = courseRepository.findById(requestDto.getCourseId())
-                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
-
-        if (!course.getInstructor().getId().equals(instructorId)) {
-            throw new UnAuthorisedException("You can only create modules for your own courses");
-        }
-
-        // --- REVISED LOGIC ---
-        // 1. Create a new, empty Module instance.
-        Module module = new Module();
-        // 2. Use ModelMapper to copy properties from the DTO to the new instance.
-        // This avoids the problematic implicit mapping of 'courseId' to 'course.id'.
-        modelMapper.map(requestDto, module);
-
-        // 3. Manually set the managed Course entity.
-        module.setCourse(course);
-        module.setIsPublished(false); // Default unpublished
-
-        Module savedModule = moduleRepository.save(module);
-
-        return mapToModuleResponseDto(savedModule, null);
-    }
 
     public ModuleResponseDto updateModule(Long moduleId, UpdateModuleRequestDto requestDto, Long instructorId) {
         Module module = moduleRepository.findById(moduleId)
