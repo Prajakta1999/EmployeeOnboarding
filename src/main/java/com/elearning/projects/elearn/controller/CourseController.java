@@ -90,14 +90,29 @@ public ResponseEntity<ApiResponse<String>> deleteCourse(
         return ResponseEntity.ok(courses);
     }
 
-    @PostMapping("/{courseId}/enroll")
-    @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<String> enrollInCourse(
-            @PathVariable Long courseId,
-            @AuthenticationPrincipal User currentUser) {
-        courseService.enrollStudent(courseId, currentUser.getId());
-        return ResponseEntity.ok("Successfully enrolled in course");
-    }
+    // @PostMapping("/{courseId}/enroll")
+    // @PreAuthorize("hasRole('STUDENT')")
+    // public ResponseEntity<String> enrollInCourse(
+    //         @PathVariable Long courseId,
+    //         @AuthenticationPrincipal User currentUser) {
+    //     courseService.enrollStudent(courseId, currentUser.getId());
+    //     return ResponseEntity.ok("Successfully enrolled in course");
+    // }
+
+
+@PostMapping("/{courseId}/enroll")
+@PreAuthorize("hasRole('STUDENT')")
+public ResponseEntity<ApiResponse<String>> enrollInCourse(
+        @PathVariable Long courseId,
+        @AuthenticationPrincipal User currentUser) {
+        
+    courseService.enrollStudent(courseId, currentUser.getId());
+    
+    // Build the standard response object directly
+    ApiResponse<String> response = new ApiResponse<>("Successfully enrolled in course");
+    
+    return ResponseEntity.ok(response);
+}
 
     @GetMapping("/student/enrolled")
     @PreAuthorize("hasRole('STUDENT')")

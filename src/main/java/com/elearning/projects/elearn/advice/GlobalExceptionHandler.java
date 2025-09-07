@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.elearning.projects.elearn.exception.OperationFailedException;
 import com.elearning.projects.elearn.exception.ResourceNotFoundException;
 
 @RestControllerAdvice
@@ -79,5 +80,13 @@ public class GlobalExceptionHandler {
                 .build();
         return buildErrorResponseEntity(apiError);
     }
+     // (NEW) Add this handler for business logic conflicts
+    @ExceptionHandler(OperationFailedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleOperationFailed(OperationFailedException ex) {
+        ApiError apiError = new ApiError(HttpStatus.CONFLICT, ex.getMessage(), null);
+        ApiResponse<Object> response = new ApiResponse<>(apiError);
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT); // Returns 409 Conflict
+    }
+
 
 }
