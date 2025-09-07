@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import com.elearning.projects.elearn.dto.*;
 import com.elearning.projects.elearn.entity.User;
 import com.elearning.projects.elearn.service.ModuleService;
+import com.elearning.projects.elearn.advice.ApiResponse;
+
 
 import java.util.List;
 
@@ -59,14 +61,29 @@ public class ModuleController {
         return ResponseEntity.ok(response);
     }
 
+    // @DeleteMapping("/{moduleId}")
+    // @PreAuthorize("hasRole('INSTRUCTOR')")
+    // public ResponseEntity<String> deleteModule(
+    //         @PathVariable Long moduleId,
+    //         @AuthenticationPrincipal User currentUser) {
+    //     moduleService.deleteModule(moduleId, currentUser.getId());
+    //     return ResponseEntity.ok("Module deleted successfully");
+    // }
+
     @DeleteMapping("/{moduleId}")
-    @PreAuthorize("hasRole('INSTRUCTOR')")
-    public ResponseEntity<String> deleteModule(
-            @PathVariable Long moduleId,
-            @AuthenticationPrincipal User currentUser) {
-        moduleService.deleteModule(moduleId, currentUser.getId());
-        return ResponseEntity.ok("Module deleted successfully");
-    }
+@PreAuthorize("hasRole('INSTRUCTOR')")
+public ResponseEntity<ApiResponse<String>> deleteModule(
+        @PathVariable Long moduleId,
+        @AuthenticationPrincipal User currentUser) {
+    
+    moduleService.deleteModule(moduleId, currentUser.getId());
+    
+    // Build the standard response object directly, just like you did for the Course controller
+    ApiResponse<String> response = new ApiResponse<>("Module deleted successfully");
+    
+    return ResponseEntity.ok(response);
+}
+
 
     @GetMapping("/instructor/my-modules")
     @PreAuthorize("hasRole('INSTRUCTOR')")

@@ -8,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import com.elearning.projects.elearn.entity.enums.ContentType;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -40,8 +41,16 @@ public class Module {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ModuleProgress> moduleProgress;
+    // @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // private List<ModuleProgress> moduleProgress;
+
+@OneToMany(
+    mappedBy = "module", 
+    cascade = CascadeType.REMOVE, 
+    orphanRemoval = true, 
+    fetch = FetchType.LAZY
+)
+private List<ModuleProgress> moduleProgress = new ArrayList<>();
 
     @CreationTimestamp
     private LocalDateTime createdAt;
