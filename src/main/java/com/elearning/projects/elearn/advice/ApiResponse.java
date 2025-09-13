@@ -4,7 +4,11 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+
 public class ApiResponse<T> {
 
     private LocalDateTime timeStamp;

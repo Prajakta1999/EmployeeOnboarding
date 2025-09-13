@@ -53,7 +53,8 @@ public class WebSecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/courses/**").authenticated()
-                        .anyRequest().authenticated())
+                        .requestMatchers("/students/**").authenticated()
+                        .anyRequest().authenticated()) 
                 .exceptionHandling(exHandlingConfig -> exHandlingConfig.accessDeniedHandler(accessDeniedHandler()));
 
         return httpSecurity.build();
