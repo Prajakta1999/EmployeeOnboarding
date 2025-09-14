@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Table(name = "enrollments",
-       uniqueConstraints = @UniqueConstraint(columnNames = {"student_id", "course_id"}))
+       uniqueConstraints = @UniqueConstraint(columnNames = {"employee_id", "course_id"}))
 public class Enrollment {
     
     @Id
@@ -19,12 +19,12 @@ public class Enrollment {
     private Long id;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id", nullable = false)
-    private User student;
+    @JoinColumn(name = "employee_id", nullable = false)
+    private User employee;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    private OnboardingTask course;
     
     @CreationTimestamp
     private LocalDateTime enrolledAt;

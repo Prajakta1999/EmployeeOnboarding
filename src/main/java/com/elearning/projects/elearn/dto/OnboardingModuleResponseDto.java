@@ -5,7 +5,7 @@ import com.elearning.projects.elearn.entity.enums.ContentType;
 import java.time.LocalDateTime;
 
 @Data
-public class ModuleResponseDto {
+public class OnboardingModuleResponseDto {
     private Long id;
     private String title;
     private String description;

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Table(name = "module_progress", 
-       uniqueConstraints = @UniqueConstraint(columnNames = {"student_id", "module_id"}))
+       uniqueConstraints = @UniqueConstraint(columnNames = {"employee_id", "module_id"}))
 public class ModuleProgress {
     
     @Id
@@ -19,8 +19,8 @@ public class ModuleProgress {
     private Long id;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id", nullable = false)
-    private User student;
+    @JoinColumn(name = "employee_id", nullable = false)
+    private User employee;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "module_id", nullable = false)

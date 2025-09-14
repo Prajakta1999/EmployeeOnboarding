@@ -1,7 +1,7 @@
 package com.elearning.projects.elearn.entity.enums;
 
 public enum Role {
-    INSTRUCTOR,
-    STUDENT,
+    HR,
+	EMPLOYEE,
     GUEST // Keep existing for backward compatibility
 }

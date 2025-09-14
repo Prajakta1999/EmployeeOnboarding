@@ -31,7 +31,7 @@ public class ProgressService {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
-        if (!student.getRoles().contains(Role.STUDENT)) {
+        if (!student.getRoles().contains(Role.EMPLOYEE)) {
             throw new UnAuthorisedException("Only students can mark modules as completed");
         }
 
@@ -39,7 +39,7 @@ public class ProgressService {
                 .orElseThrow(() -> new ResourceNotFoundException("Module not found"));
 
         // Check if student is enrolled in course
-        if (!enrollmentRepository.findByStudentIdAndCourseId(studentId, module.getCourse().getId()).isPresent()) {
+        if (!enrollmentRepository.findByEmployee_IdAndCourse_Id(studentId, module.getCourse().getId()).isPresent()) {
             throw new UnAuthorisedException("You are not enrolled in this course");
         }
 
@@ -59,7 +59,7 @@ public class ProgressService {
             }
         } else {
             progress = new ModuleProgress();
-            progress.setStudent(student);
+            progress.setEmployee(student);
             progress.setModule(module);
         }
 
@@ -73,7 +73,7 @@ public class ProgressService {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
-        if (!student.getRoles().contains(Role.STUDENT)) {
+        if (!student.getRoles().contains(Role.EMPLOYEE)) {
             throw new UnAuthorisedException("Only students can unmark module completion");
         }
 
@@ -90,15 +90,15 @@ public class ProgressService {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
-        if (!student.getRoles().contains(Role.STUDENT)) {
+        if (!student.getRoles().contains(Role.EMPLOYEE)) {
             throw new UnAuthorisedException("Only students can view progress");
         }
 
-        List<Enrollment> enrollments = enrollmentRepository.findByStudentId(studentId);
+        List<Enrollment> enrollments = enrollmentRepository.findByEmployee_Id(studentId);
 
         return enrollments.stream()
                 .map(enrollment -> {
-                    Course course = enrollment.getCourse();
+                    OnboardingTask course = enrollment.getCourse();
                     List<Module> publishedModules = moduleRepository
                             .findByCourseIdAndIsPublishedTrue(course.getId());
 
@@ -113,7 +113,7 @@ public class ProgressService {
                     ProgressResponseDto dto = new ProgressResponseDto();
                     dto.setCourseId(course.getId());
                     dto.setCourseName(course.getName());
-                    dto.setInstructorName(course.getInstructor().getName());
+                    dto.setInstructorName(course.getHr().getName());
                     dto.setTotalModulesAvailable((long) totalModules);
                     dto.setTotalModulesCompleted(completedModules);
                     dto.setCompletionPercentage(
@@ -130,11 +130,11 @@ public class ProgressService {
         User instructor = userRepository.findById(instructorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Instructor not found"));
 
-        if (!instructor.getRoles().contains(Role.INSTRUCTOR)) {
+        if (!instructor.getRoles().contains(Role.HR)) {
             throw new UnAuthorisedException("Only instructors can view completion reports");
         }
 
-        List<Course> courses = courseRepository.findByInstructorId(instructorId);
+        List<OnboardingTask> courses = courseRepository.findByHr_Id(instructorId);
 
         return courses.stream()
                 .map(course -> {
@@ -143,7 +143,7 @@ public class ProgressService {
                     
                     List<Long> enrolledStudentIds = enrollmentRepository.findByCourseId(course.getId())
                             .stream()
-                            .map(enrollment -> enrollment.getStudent().getId())
+                            .map(enrollment -> enrollment.getEmployee().getId())
                             .collect(Collectors.toList());
 
                     List<CompletionReportDto> moduleReports = publishedModules.stream()
@@ -185,10 +185,10 @@ public class ProgressService {
 
     @Transactional(readOnly = true)
     public CourseCompletionReportDto getCourseCompletionReport(Long courseId, Long instructorId) {
-        Course course = courseRepository.findById(courseId)
+        OnboardingTask course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
-        if (!course.getInstructor().getId().equals(instructorId)) {
+        if (!course.getHr().getId().equals(instructorId)) {
             throw new UnAuthorisedException("You can only view reports for your own courses");
         }
 

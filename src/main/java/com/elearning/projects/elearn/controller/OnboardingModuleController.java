@@ -18,46 +18,46 @@ import java.util.List;
 @RestController
 @RequestMapping("/modules")
 @RequiredArgsConstructor
-public class ModuleController {
+public class OnboardingModuleController {
 
     private final ModuleService moduleService;
 
     // Instructor endpoints
 
     @PostMapping
-    @PreAuthorize("hasRole('INSTRUCTOR')")
-    public ResponseEntity<ModuleResponseDto> createModule(
+    @PreAuthorize("hasRole('HR')")
+    public ResponseEntity<OnboardingModuleResponseDto> createModule(
             @Valid @RequestBody CreateModuleRequestDto requestDto,
             @AuthenticationPrincipal User currentUser) {
-        ModuleResponseDto response = moduleService.createModule(requestDto, currentUser.getId());
+        OnboardingModuleResponseDto response = moduleService.createModule(requestDto, currentUser.getId());
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PutMapping("/{moduleId}")
-    @PreAuthorize("hasRole('INSTRUCTOR')")
-    public ResponseEntity<ModuleResponseDto> updateModule(
+    @PreAuthorize("hasRole('HR')")
+    public ResponseEntity<OnboardingModuleResponseDto> updateModule(
             @PathVariable Long moduleId,
             @Valid @RequestBody UpdateModuleRequestDto requestDto,
             @AuthenticationPrincipal User currentUser) {
-        ModuleResponseDto response = moduleService.updateModule(moduleId, requestDto, currentUser.getId());
+        OnboardingModuleResponseDto response = moduleService.updateModule(moduleId, requestDto, currentUser.getId());
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{moduleId}/publish")
-    @PreAuthorize("hasRole('INSTRUCTOR')")
-    public ResponseEntity<ModuleResponseDto> publishModule(
+    @PreAuthorize("hasRole('HR')")
+    public ResponseEntity<OnboardingModuleResponseDto> publishModule(
             @PathVariable Long moduleId,
             @AuthenticationPrincipal User currentUser) {
-        ModuleResponseDto response = moduleService.publishModule(moduleId, currentUser.getId());
+        OnboardingModuleResponseDto response = moduleService.publishModule(moduleId, currentUser.getId());
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{moduleId}/unpublish")
-    @PreAuthorize("hasRole('INSTRUCTOR')")
-    public ResponseEntity<ModuleResponseDto> unpublishModule(
+    @PreAuthorize("hasRole('HR')")
+    public ResponseEntity<OnboardingModuleResponseDto> unpublishModule(
             @PathVariable Long moduleId,
             @AuthenticationPrincipal User currentUser) {
-        ModuleResponseDto response = moduleService.unpublishModule(moduleId, currentUser.getId());
+        OnboardingModuleResponseDto response = moduleService.unpublishModule(moduleId, currentUser.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -71,7 +71,7 @@ public class ModuleController {
     // }
 
     @DeleteMapping("/{moduleId}")
-@PreAuthorize("hasRole('INSTRUCTOR')")
+@PreAuthorize("hasRole('HR')")
 public ResponseEntity<ApiResponse<String>> deleteModule(
         @PathVariable Long moduleId,
         @AuthenticationPrincipal User currentUser) {
@@ -86,28 +86,28 @@ public ResponseEntity<ApiResponse<String>> deleteModule(
 
 
     @GetMapping("/instructor/my-modules")
-    @PreAuthorize("hasRole('INSTRUCTOR')")
-    public ResponseEntity<List<ModuleResponseDto>> getInstructorModules(
+    @PreAuthorize("hasRole('HR')")
+    public ResponseEntity<List<OnboardingModuleResponseDto>> getInstructorModules(
             @RequestParam(required = false) Long courseId,
             @AuthenticationPrincipal User currentUser) {
-        List<ModuleResponseDto> modules = moduleService.getInstructorModules(currentUser.getId(), courseId);
+        List<OnboardingModuleResponseDto> modules = moduleService.getInstructorModules(currentUser.getId(), courseId);
         return ResponseEntity.ok(modules);
     }
 
     @GetMapping("/instructor/{moduleId}")
-    @PreAuthorize("hasRole('INSTRUCTOR')")
-    public ResponseEntity<ModuleResponseDto> getInstructorModuleById(
+    @PreAuthorize("hasRole('HR')")
+    public ResponseEntity<OnboardingModuleResponseDto> getInstructorModuleById(
             @PathVariable Long moduleId,
             @AuthenticationPrincipal User currentUser) {
-        ModuleResponseDto module = moduleService.getInstructorModuleById(moduleId, currentUser.getId());
+        OnboardingModuleResponseDto module = moduleService.getInstructorModuleById(moduleId, currentUser.getId());
         return ResponseEntity.ok(module);
     }
 
     // Student endpoints
 
     @GetMapping("/student/available")
-    @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<List<ModuleResponseDto>> getAvailableModules(
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    public ResponseEntity<List<OnboardingModuleResponseDto>> getAvailableModules(
             @RequestParam(required = false) String courseName,
             @RequestParam(required = false) String moduleTitle,
             @RequestParam(required = false) String contentType,
@@ -126,16 +126,16 @@ public ResponseEntity<ApiResponse<String>> deleteModule(
             }
         }
 
-        List<ModuleResponseDto> modules = moduleService.getPublishedModulesForStudent(currentUser.getId(), searchDto);
+        List<OnboardingModuleResponseDto> modules = moduleService.getPublishedModulesForStudent(currentUser.getId(), searchDto);
         return ResponseEntity.ok(modules);
     }
 
     @GetMapping("/student/{moduleId}")
-    @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<ModuleResponseDto> getModuleById(
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    public ResponseEntity<OnboardingModuleResponseDto> getModuleById(
             @PathVariable Long moduleId,
             @AuthenticationPrincipal User currentUser) {
-        ModuleResponseDto module = moduleService.getModuleById(moduleId, currentUser.getId());
+        OnboardingModuleResponseDto module = moduleService.getModuleById(moduleId, currentUser.getId());
         return ResponseEntity.ok(module);
     }
 }

@@ -18,7 +18,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
      * @param courseId  the ID of the course
      * @return an Optional containing the enrollment if it exists
      */
-    Optional<Enrollment> findByStudentIdAndCourseId(Long studentId, Long courseId);
+    Optional<Enrollment> findByEmployee_IdAndCourse_Id(Long employeeId, Long courseId);
 
     /**
      * Finds all courses a specific student is enrolled in.
@@ -26,7 +26,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
      * @param studentId the ID of the student (User)
      * @return a list of all their enrollments
      */
-    List<Enrollment> findByStudentId(Long studentId);
+    List<Enrollment> findByEmployee_Id(Long employeeId);
 
     List<Enrollment> findByCourseId(Long courseId);
 

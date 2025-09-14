@@ -4,7 +4,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class EnrolledStudentDto {
+public class AssignedEmployeeDto {
     private Long studentId;
     private String studentName;
     private String studentEmail;

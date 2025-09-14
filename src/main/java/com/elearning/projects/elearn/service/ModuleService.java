@@ -30,18 +30,18 @@ public class ModuleService {
     private final EnrollmentRepository enrollmentRepository;
     private final ModelMapper modelMapper;
 
-    public ModuleResponseDto createModule(CreateModuleRequestDto requestDto, Long instructorId) {
+    public OnboardingModuleResponseDto createModule(CreateModuleRequestDto requestDto, Long instructorId) {
         User instructor = userRepository.findById(instructorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Instructor not found"));
 
-        if (!instructor.getRoles().contains(Role.INSTRUCTOR)) {
+        if (!instructor.getRoles().contains(Role.EMPLOYEE)) {
             throw new UnAuthorisedException("Only instructors can create modules");
         }
 
-        Course course = courseRepository.findById(requestDto.getCourseId())
+        OnboardingTask course = courseRepository.findById(requestDto.getCourseId())
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
-        if (!course.getInstructor().getId().equals(instructorId)) {
+        if (!course.getHr().getId().equals(instructorId)) {
             throw new UnAuthorisedException("You can only create modules for your own courses");
         }
 
@@ -90,11 +90,11 @@ public class ModuleService {
     // return mapToModuleResponseDto(savedModule, null);
     // }
 
-    public ModuleResponseDto updateModule(Long moduleId, UpdateModuleRequestDto requestDto, Long instructorId) {
+    public OnboardingModuleResponseDto updateModule(Long moduleId, UpdateModuleRequestDto requestDto, Long instructorId) {
         Module module = moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Module not found"));
 
-        if (!module.getCourse().getInstructor().getId().equals(instructorId)) {
+        if (!module.getCourse().getHr().getId().equals(instructorId)) {
             throw new UnAuthorisedException("You can only update your own modules");
         }
 
@@ -115,19 +115,19 @@ public class ModuleService {
         return mapToModuleResponseDto(module, null);
     }
 
-    public ModuleResponseDto publishModule(Long moduleId, Long instructorId) {
+    public OnboardingModuleResponseDto publishModule(Long moduleId, Long instructorId) {
         return toggleModulePublishStatus(moduleId, instructorId, true);
     }
 
-    public ModuleResponseDto unpublishModule(Long moduleId, Long instructorId) {
+    public OnboardingModuleResponseDto unpublishModule(Long moduleId, Long instructorId) {
         return toggleModulePublishStatus(moduleId, instructorId, false);
     }
 
-    private ModuleResponseDto toggleModulePublishStatus(Long moduleId, Long instructorId, boolean isPublished) {
+    private OnboardingModuleResponseDto toggleModulePublishStatus(Long moduleId, Long instructorId, boolean isPublished) {
         Module module = moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Module not found"));
 
-        if (!module.getCourse().getInstructor().getId().equals(instructorId)) {
+        if (!module.getCourse().getHr().getId().equals(instructorId)) {
             throw new UnAuthorisedException("You can only manage your own modules");
         }
 
@@ -141,7 +141,7 @@ public class ModuleService {
         Module module = moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Module not found"));
 
-        if (!module.getCourse().getInstructor().getId().equals(instructorId)) {
+        if (!module.getCourse().getHr().getId().equals(instructorId)) {
             throw new UnAuthorisedException("You can only delete your own modules");
         }
 
@@ -154,28 +154,28 @@ public class ModuleService {
         moduleRepository.delete(module);
     }
 
-    public List<ModuleResponseDto> getInstructorModules(Long instructorId, Long courseId) {
+    public List<OnboardingModuleResponseDto> getInstructorModules(Long instructorId, Long courseId) {
         User instructor = userRepository.findById(instructorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Instructor not found"));
 
-        if (!instructor.getRoles().contains(Role.INSTRUCTOR)) {
+        if (!instructor.getRoles().contains(Role.HR)) {
             throw new UnAuthorisedException("Only instructors can view instructor modules");
         }
 
         List<Module> modules;
         if (courseId != null) {
             // Get modules for specific course
-            Course course = courseRepository.findById(courseId)
+            OnboardingTask course = courseRepository.findById(courseId)
                     .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
-            if (!course.getInstructor().getId().equals(instructorId)) {
+            if (!course.getHr().getId().equals(instructorId)) {
                 throw new UnAuthorisedException("You can only view modules from your own courses");
             }
 
             modules = moduleRepository.findByCourseId(courseId);
         } else {
             // Get all modules for instructor
-            modules = moduleRepository.findByCourseInstructorId(instructorId);
+            modules = moduleRepository.findByCourse_Hr_Id(instructorId);
         }
 
         return modules.stream()
@@ -183,16 +183,16 @@ public class ModuleService {
                 .collect(Collectors.toList());
     }
 
-    public List<ModuleResponseDto> getPublishedModulesForStudent(Long studentId, ModuleSearchRequestDto searchDto) {
+    public List<OnboardingModuleResponseDto> getPublishedModulesForStudent(Long studentId, ModuleSearchRequestDto searchDto) {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
-        if (!student.getRoles().contains(Role.STUDENT)) {
+        if (!student.getRoles().contains(Role.EMPLOYEE)) {
             throw new UnAuthorisedException("Only students can view published modules");
         }
 
         // Get enrolled course IDs
-        List<Long> enrolledCourseIds = enrollmentRepository.findByStudentId(studentId)
+        List<Long> enrolledCourseIds = enrollmentRepository.findByEmployee_Id(studentId)
                 .stream()
                 .map(enrollment -> enrollment.getCourse().getId())
                 .collect(Collectors.toList());
@@ -219,19 +219,19 @@ public class ModuleService {
                 .collect(Collectors.toList());
     }
 
-    public ModuleResponseDto getModuleById(Long moduleId, Long studentId) {
+    public OnboardingModuleResponseDto getModuleById(Long moduleId, Long studentId) {
         Module module = moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Module not found"));
 
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
-        if (!student.getRoles().contains(Role.STUDENT)) {
+        if (!student.getRoles().contains(Role.EMPLOYEE)) {
             throw new UnAuthorisedException("Only students can view module details");
         }
 
         // Check if student is enrolled in the course
-        if (!enrollmentRepository.findByStudentIdAndCourseId(studentId, module.getCourse().getId()).isPresent()) {
+        if (!enrollmentRepository.findByEmployee_IdAndCourse_Id(studentId, module.getCourse().getId()).isPresent()) {
             throw new UnAuthorisedException("You are not enrolled in this course");
         }
 
@@ -247,22 +247,22 @@ public class ModuleService {
         return mapToModuleResponseDto(module, isCompleted);
     }
 
-    public ModuleResponseDto getInstructorModuleById(Long moduleId, Long instructorId) {
+    public OnboardingModuleResponseDto getInstructorModuleById(Long moduleId, Long instructorId) {
         Module module = moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Module not found"));
 
-        if (!module.getCourse().getInstructor().getId().equals(instructorId)) {
+        if (!module.getCourse().getHr().getId().equals(instructorId)) {
             throw new UnAuthorisedException("You can only view your own modules");
         }
 
         return mapToModuleResponseDto(module, null);
     }
 
-    private ModuleResponseDto mapToModuleResponseDto(Module module, Boolean isCompleted) {
-        ModuleResponseDto dto = modelMapper.map(module, ModuleResponseDto.class);
+    private OnboardingModuleResponseDto mapToModuleResponseDto(Module module, Boolean isCompleted) {
+        OnboardingModuleResponseDto dto = modelMapper.map(module, OnboardingModuleResponseDto.class);
         dto.setCourseName(module.getCourse().getName());
         dto.setCourseId(module.getCourse().getId());
-        dto.setInstructorName(module.getCourse().getInstructor().getName());
+        dto.setInstructorName(module.getCourse().getHr().getName());
 
         if (isCompleted != null) {
             dto.setIsCompleted(isCompleted);

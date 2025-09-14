@@ -29,11 +29,11 @@ public class EnrollmentService {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
-        if (!student.getRoles().contains(Role.STUDENT)) {
+        if (!student.getRoles().contains(Role.EMPLOYEE)) {
             throw new UnAuthorisedException("Only students can enroll in courses");
         }
 
-        Course course = courseRepository.findById(courseId)
+        OnboardingTask course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
         // Check if course has published modules
@@ -43,12 +43,12 @@ public class EnrollmentService {
         }
 
         // Check if already enrolled
-        if (enrollmentRepository.findByStudentIdAndCourseId(studentId, courseId).isPresent()) {
+        if (enrollmentRepository.findByEmployee_IdAndCourse_Id(studentId, courseId).isPresent()) {
             throw new RuntimeException("Student is already enrolled in this course");
         }
 
         Enrollment enrollment = new Enrollment();
-        enrollment.setStudent(student);
+        enrollment.setEmployee(student);
         enrollment.setCourse(course);
         enrollmentRepository.save(enrollment);
     }
@@ -58,11 +58,11 @@ public class EnrollmentService {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
-        if (!student.getRoles().contains(Role.STUDENT)) {
+        if (!student.getRoles().contains(Role.EMPLOYEE)) {
             throw new UnAuthorisedException("Only students can unenroll from courses");
         }
 
-        Enrollment enrollment = enrollmentRepository.findByStudentIdAndCourseId(studentId, courseId)
+        Enrollment enrollment = enrollmentRepository.findByEmployee_IdAndCourse_Id(studentId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Enrollment not found"));
 
         // Check if student has progress in any modules
@@ -86,25 +86,25 @@ public class EnrollmentService {
     }
 
     @Transactional(readOnly = true)
-    public List<CourseResponseDto> getStudentEnrolledCourses(Long studentId) {
+    public List<TaskResponseDto> getStudentEnrolledCourses(Long studentId) {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
-        if (!student.getRoles().contains(Role.STUDENT)) {
+        if (!student.getRoles().contains(Role.EMPLOYEE)) {
             throw new UnAuthorisedException("Only students can view enrolled courses");
         }
 
-        List<Enrollment> enrollments = enrollmentRepository.findByStudentId(studentId);
+        List<Enrollment> enrollments = enrollmentRepository.findByEmployee_Id(studentId);
 
         return enrollments.stream()
                 .map(enrollment -> {
-                    Course course = enrollment.getCourse();
-                    CourseResponseDto dto = new CourseResponseDto();
+                    OnboardingTask course = enrollment.getCourse();
+                    TaskResponseDto dto = new TaskResponseDto();
                     dto.setId(course.getId());
                     dto.setName(course.getName());
                     dto.setDescription(course.getDescription());
-                    dto.setInstructorName(course.getInstructor().getName());
-                    dto.setInstructorId(course.getInstructor().getId());
+                    dto.setInstructorName(course.getHr().getName());
+                    dto.setInstructorId(course.getHr().getId());
                     dto.setCreatedAt(course.getCreatedAt());
                     dto.setUpdatedAt(course.getUpdatedAt());
 
@@ -121,11 +121,11 @@ public class EnrollmentService {
     }
 
     @Transactional(readOnly = true)
-    public List<EnrolledStudentDto> getCourseEnrolledStudents(Long courseId, Long instructorId) {
-        Course course = courseRepository.findById(courseId)
+    public List<AssignedEmployeeDto> getCourseEnrolledStudents(Long courseId, Long instructorId) {
+        OnboardingTask course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
-        if (!course.getInstructor().getId().equals(instructorId)) {
+        if (!course.getHr().getId().equals(instructorId)) {
             throw new UnAuthorisedException("You can only view enrollments for your own courses");
         }
 
@@ -133,7 +133,7 @@ public class EnrollmentService {
 
         return enrollments.stream()
                 .map(enrollment -> {
-                    User student = enrollment.getStudent();
+                    User student = enrollment.getEmployee();
 
                     // Calculate progress
                     List<Module> publishedModules = moduleRepository.findByCourseIdAndIsPublishedTrue(courseId);
@@ -142,7 +142,7 @@ public class EnrollmentService {
                     long completedModules = moduleProgressRepository
                             .countByStudentIdAndModuleIdInAndIsCompletedTrue(student.getId(), moduleIds);
 
-                    EnrolledStudentDto dto = new EnrolledStudentDto();
+                    AssignedEmployeeDto dto = new AssignedEmployeeDto();
                     dto.setStudentId(student.getId());
                     dto.setStudentName(student.getName());
                     dto.setStudentEmail(student.getEmail());
@@ -159,37 +159,37 @@ public class EnrollmentService {
 
     @Transactional(readOnly = true)
     public boolean isStudentEnrolled(Long courseId, Long studentId) {
-        return enrollmentRepository.findByStudentIdAndCourseId(studentId, courseId).isPresent();
+        return enrollmentRepository.findByEmployee_IdAndCourse_Id(studentId, courseId).isPresent();
     }
 
     @Transactional(readOnly = true)
-    public List<CourseResponseDto> getAvailableCoursesForStudent(Long studentId) {
+    public List<TaskResponseDto> getAvailableCoursesForStudent(Long studentId) {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
-        if (!student.getRoles().contains(Role.STUDENT)) {
+        if (!student.getRoles().contains(Role.EMPLOYEE)) {
             throw new UnAuthorisedException("Only students can view available courses");
         }
 
         // Get all enrolled course IDs
-        List<Long> enrolledCourseIds = enrollmentRepository.findByStudentId(studentId)
+        List<Long> enrolledCourseIds = enrollmentRepository.findByEmployee_Id(studentId)
                 .stream()
                 .map(enrollment -> enrollment.getCourse().getId())
                 .collect(Collectors.toList());
 
         // Get all courses with published modules
-        List<Course> allAvailableCourses = courseRepository.findCoursesWithPublishedModules();
+        List<OnboardingTask> allAvailableCourses = courseRepository.findCoursesWithPublishedModules();
 
         // Filter out already enrolled courses
         return allAvailableCourses.stream()
                 .filter(course -> !enrolledCourseIds.contains(course.getId()))
                 .map(course -> {
-                    CourseResponseDto dto = new CourseResponseDto();
+                    TaskResponseDto dto = new TaskResponseDto();
                     dto.setId(course.getId());
                     dto.setName(course.getName());
                     dto.setDescription(course.getDescription());
-                    dto.setInstructorName(course.getInstructor().getName());
-                    dto.setInstructorId(course.getInstructor().getId());
+                    dto.setInstructorName(course.getHr().getName());
+                    dto.setInstructorId(course.getHr().getId());
                     dto.setCreatedAt(course.getCreatedAt());
                     dto.setUpdatedAt(course.getUpdatedAt());
 
@@ -209,11 +209,11 @@ public class EnrollmentService {
         User instructor = userRepository.findById(instructorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Instructor not found"));
 
-        if (!instructor.getRoles().contains(Role.INSTRUCTOR)) {
+        if (!instructor.getRoles().contains(Role.HR)) {
             throw new UnAuthorisedException("Only instructors can view enrollment statistics");
         }
 
-        List<Course> instructorCourses = courseRepository.findByInstructorId(instructorId);
+        List<OnboardingTask> instructorCourses = courseRepository.findByHr_Id(instructorId);
 
         long totalCourses = instructorCourses.size();
         long totalEnrollments = instructorCourses.stream()

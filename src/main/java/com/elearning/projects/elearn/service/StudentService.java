@@ -18,7 +18,7 @@ public class StudentService {
 
     public List<User> getAllStudents() {
         // Either option works, pick one:
-        return userRepository.findByRole(com.elearning.projects.elearn.entity.enums.Role.STUDENT);
+        return userRepository.findByRole(com.elearning.projects.elearn.entity.enums.Role.EMPLOYEE);
         // return userRepository.findByRolesContaining(com.elearning.projects.elearn.entity.enums.Role.STUDENT);
     }
 }

@@ -27,26 +27,26 @@ public class CourseService {
     private final ModelMapper modelMapper;
     private final EnrollmentService enrollmentService;
 
-    public CourseResponseDto createCourse(CreateCourseRequestDto requestDto, Long instructorId) {
+    public TaskResponseDto createCourse(CreateTaskRequestDto requestDto, Long instructorId) {
         User instructor = userRepository.findById(instructorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Instructor not found"));
 
-        if (!instructor.getRoles().contains(Role.INSTRUCTOR)) {
+        if (!instructor.getRoles().contains(Role.HR)) {
             throw new UnAuthorisedException("Only instructors can create courses");
         }
 
-        Course course = modelMapper.map(requestDto, Course.class);
-        course.setInstructor(instructor);
+        OnboardingTask course = modelMapper.map(requestDto, OnboardingTask.class);
+        course.setHr(instructor);
         course = courseRepository.save(course);
 
         return mapToCourseResponseDto(course);
     }
 
-    public CourseResponseDto updateCourse(Long courseId, UpdateCourseRequestDto requestDto, Long instructorId) {
-        Course course = courseRepository.findById(courseId)
+    public TaskResponseDto updateCourse(Long courseId, UpdateCourseRequestDto requestDto, Long instructorId) {
+        OnboardingTask course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
-        if (!course.getInstructor().getId().equals(instructorId)) {
+        if (!course.getHr().getId().equals(instructorId)) {
             throw new UnAuthorisedException("You can only update your own courses");
         }
 
@@ -62,10 +62,10 @@ public class CourseService {
     }
 
     public void deleteCourse(Long courseId, Long instructorId) {
-        Course course = courseRepository.findById(courseId)
+        OnboardingTask course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
-        if (!course.getInstructor().getId().equals(instructorId)) {
+        if (!course.getHr().getId().equals(instructorId)) {
             throw new UnAuthorisedException("You can only delete your own courses");
         }
 
@@ -78,25 +78,25 @@ public class CourseService {
         courseRepository.delete(course);
     }
 
-    public List<CourseResponseDto> getInstructorCourses(Long instructorId) {
+    public List<TaskResponseDto> getInstructorCourses(Long instructorId) {
         User instructor = userRepository.findById(instructorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Instructor not found"));
 
-        if (!instructor.getRoles().contains(Role.INSTRUCTOR)) {
+        if (!instructor.getRoles().contains(Role.HR)) {
             throw new UnAuthorisedException("Only instructors can view instructor courses");
         }
 
-        List<Course> courses = courseRepository.findByInstructorId(instructorId);
+        List<OnboardingTask> courses = courseRepository.findByHr_Id(instructorId);
         return courses.stream()
                 .map(this::mapToCourseResponseDto)
                 .collect(Collectors.toList());
     }
 
-    public CourseResponseDto getCourseById(Long courseId, Long instructorId) {
-        Course course = courseRepository.findById(courseId)
+    public TaskResponseDto getCourseById(Long courseId, Long instructorId) {
+        OnboardingTask course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
-        if (!course.getInstructor().getId().equals(instructorId)) {
+        if (!course.getHr().getId().equals(instructorId)) {
             throw new UnAuthorisedException("You can only view your own courses");
         }
 
@@ -110,7 +110,7 @@ public class CourseService {
     // .collect(Collectors.toList());
     // }
 
-    public List<CourseResponseDto> getAvailableCourses() {
+    public List<TaskResponseDto> getAvailableCourses() {
         return enrollmentService.getAvailableCoursesForStudent(null); // Or create separate method
     }
 
@@ -163,14 +163,14 @@ public class CourseService {
     // .collect(Collectors.toList());
     // }
 
-    public List<CourseResponseDto> getStudentEnrolledCourses(Long studentId) {
+    public List<TaskResponseDto> getStudentEnrolledCourses(Long studentId) {
         return enrollmentService.getStudentEnrolledCourses(studentId);
     }
 
-    private CourseResponseDto mapToCourseResponseDto(Course course) {
-        CourseResponseDto dto = modelMapper.map(course, CourseResponseDto.class);
-        dto.setInstructorName(course.getInstructor().getName());
-        dto.setInstructorId(course.getInstructor().getId());
+    private TaskResponseDto mapToCourseResponseDto(OnboardingTask course) {
+        TaskResponseDto dto = modelMapper.map(course, TaskResponseDto.class);
+        dto.setInstructorName(course.getHr().getName());
+        dto.setInstructorId(course.getHr().getId());
 
         // Count modules
         int totalModules = moduleRepository.countByCourseId(course.getId());

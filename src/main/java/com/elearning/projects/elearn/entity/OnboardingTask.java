@@ -13,8 +13,8 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@Table(name = "courses")
-public class Course {
+@Table(name = "OnboardingTasks")
+public class OnboardingTask {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,8 +27,8 @@ public class Course {
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "instructor_id", nullable = false)
-    private User instructor;
+    @JoinColumn(name = "hr_id", nullable = false)
+    private User hr;
 
     // @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     // private List<Module> modules;

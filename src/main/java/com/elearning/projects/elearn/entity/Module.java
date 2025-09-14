@@ -39,7 +39,7 @@ public class Module {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    private OnboardingTask course;
 
     // @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     // private List<ModuleProgress> moduleProgress;

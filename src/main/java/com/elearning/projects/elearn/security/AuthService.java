@@ -53,7 +53,7 @@ public class AuthService {
         }
 
         // Validate role selection
-        if (signUpRequestDto.getRole() != Role.INSTRUCTOR && signUpRequestDto.getRole() != Role.STUDENT) {
+        if (signUpRequestDto.getRole() != Role.HR && signUpRequestDto.getRole() != Role.EMPLOYEE) {
             throw new RuntimeException("Invalid role selection. Please select either INSTRUCTOR or STUDENT");
         }
 

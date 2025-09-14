@@ -42,7 +42,7 @@ public class ProgressController {
 
 
 @PostMapping("/modules/{moduleId}/complete")
-@PreAuthorize("hasRole('STUDENT')")
+@PreAuthorize("hasRole('EMPLOYEE')")
 public ResponseEntity<ApiResponse<String>> markModuleCompleted(
         @PathVariable Long moduleId,
         @AuthenticationPrincipal User currentUser) {
@@ -54,7 +54,7 @@ public ResponseEntity<ApiResponse<String>> markModuleCompleted(
 }
 
 @PostMapping("/modules/{moduleId}/uncomplete")
-@PreAuthorize("hasRole('STUDENT')")
+@PreAuthorize("hasRole('EMPLOYEE')")
 public ResponseEntity<ApiResponse<String>> unmarkModuleCompleted(
         @PathVariable Long moduleId,
         @AuthenticationPrincipal User currentUser) {
@@ -66,7 +66,7 @@ public ResponseEntity<ApiResponse<String>> unmarkModuleCompleted(
 }
 
     @GetMapping("/student/my-progress")
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<List<ProgressResponseDto>> getMyProgress(
             @AuthenticationPrincipal User currentUser) {
         List<ProgressResponseDto> progress = progressService.getStudentProgress(currentUser.getId());
@@ -76,7 +76,7 @@ public ResponseEntity<ApiResponse<String>> unmarkModuleCompleted(
     // Instructor endpoints
 
     @GetMapping("/instructor/completion-reports")
-    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @PreAuthorize("hasRole('HR')")
     public ResponseEntity<List<CourseCompletionReportDto>> getCompletionReports(
             @AuthenticationPrincipal User currentUser) {
         List<CourseCompletionReportDto> reports = progressService.getInstructorCompletionReport(currentUser.getId());
@@ -84,7 +84,7 @@ public ResponseEntity<ApiResponse<String>> unmarkModuleCompleted(
     }
 
     @GetMapping("/instructor/courses/{courseId}/completion-report")
-    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @PreAuthorize("hasRole('HR')")
     public ResponseEntity<CourseCompletionReportDto> getCourseCompletionReport(
             @PathVariable Long courseId,
             @AuthenticationPrincipal User currentUser) {

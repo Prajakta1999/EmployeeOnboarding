@@ -21,7 +21,7 @@ public interface ModuleRepository extends JpaRepository<Module, Long> {
      */
     List<Module> findByCourseId(Long courseId);
 
-    List<Module> findByCourseInstructorId(Long instructorId);
+    List<Module> findByCourse_Hr_Id(Long hrId);
 
     List<Module> findByCourseIdAndIsPublishedTrue(Long courseId);
 

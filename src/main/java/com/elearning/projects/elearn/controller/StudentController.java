@@ -24,9 +24,9 @@ public class StudentController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @PreAuthorize("hasRole('HR')")
 
     public ResponseEntity<List<User>> getAllStudents() {
-        return ResponseEntity.ok(userRepository.findByRole(Role.STUDENT));
+        return ResponseEntity.ok(userRepository.findByRole(Role.EMPLOYEE));
     }
 }

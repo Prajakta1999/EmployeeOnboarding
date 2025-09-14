@@ -21,7 +21,7 @@ public class EnrollmentController {
     // Student endpoints
 
     @PostMapping("/courses/{courseId}")
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<String> enrollInCourse(
             @PathVariable Long courseId,
             @AuthenticationPrincipal User currentUser) {
@@ -30,7 +30,7 @@ public class EnrollmentController {
     }
 
     @DeleteMapping("/courses/{courseId}")
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<String> unenrollFromCourse(
             @PathVariable Long courseId,
             @AuthenticationPrincipal User currentUser) {
@@ -39,23 +39,23 @@ public class EnrollmentController {
     }
 
     @GetMapping("/student/my-courses")
-    @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<List<CourseResponseDto>> getMyEnrolledCourses(
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    public ResponseEntity<List<TaskResponseDto>> getMyEnrolledCourses(
             @AuthenticationPrincipal User currentUser) {
-        List<CourseResponseDto> courses = enrollmentService.getStudentEnrolledCourses(currentUser.getId());
+        List<TaskResponseDto> courses = enrollmentService.getStudentEnrolledCourses(currentUser.getId());
         return ResponseEntity.ok(courses);
     }
 
     @GetMapping("/student/available-courses")
-    @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<List<CourseResponseDto>> getAvailableCourses(
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    public ResponseEntity<List<TaskResponseDto>> getAvailableCourses(
             @AuthenticationPrincipal User currentUser) {
-        List<CourseResponseDto> courses = enrollmentService.getAvailableCoursesForStudent(currentUser.getId());
+        List<TaskResponseDto> courses = enrollmentService.getAvailableCoursesForStudent(currentUser.getId());
         return ResponseEntity.ok(courses);
     }
 
     @GetMapping("/courses/{courseId}/is-enrolled")
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<Boolean> checkEnrollmentStatus(
             @PathVariable Long courseId,
             @AuthenticationPrincipal User currentUser) {
@@ -66,16 +66,16 @@ public class EnrollmentController {
     // Instructor endpoints
 
     @GetMapping("/instructor/courses/{courseId}/students")
-    @PreAuthorize("hasRole('INSTRUCTOR')")
-    public ResponseEntity<List<EnrolledStudentDto>> getCourseEnrolledStudents(
+    @PreAuthorize("hasRole('HR')")
+    public ResponseEntity<List<AssignedEmployeeDto>> getCourseEnrolledStudents(
             @PathVariable Long courseId,
             @AuthenticationPrincipal User currentUser) {
-        List<EnrolledStudentDto> students = enrollmentService.getCourseEnrolledStudents(courseId, currentUser.getId());
+        List<AssignedEmployeeDto> students = enrollmentService.getCourseEnrolledStudents(courseId, currentUser.getId());
         return ResponseEntity.ok(students);
     }
 
     @GetMapping("/instructor/statistics")
-    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @PreAuthorize("hasRole('HR')")
     public ResponseEntity<EnrollmentStatsDto> getEnrollmentStatistics(
             @AuthenticationPrincipal User currentUser) {
         EnrollmentStatsDto stats = enrollmentService.getEnrollmentStats(currentUser.getId());
