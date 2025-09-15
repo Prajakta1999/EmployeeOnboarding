@@ -52,9 +52,12 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/api/hr/**").hasRole("HR")  // Add this line
+                        .requestMatchers("/api/employee/**").hasRole("EMPLOYEE")  // Add this line
                         .requestMatchers("/courses/**").authenticated()
                         .requestMatchers("/students/**").authenticated()
-                        .anyRequest().authenticated()) 
+                        .anyRequest().authenticated())
+
                 .exceptionHandling(exHandlingConfig -> exHandlingConfig.accessDeniedHandler(accessDeniedHandler()));
 
         return httpSecurity.build();
