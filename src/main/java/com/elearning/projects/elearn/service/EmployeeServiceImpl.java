@@ -310,20 +310,45 @@ public class EmployeeServiceImpl implements EmployeeService {
         );
     }
 
+    // private int calculateCompletionPercentage(Employee employee) {
+    //     int completedTasks = taskRepository.countByEmployeeIdAndStatus(employee.getId(), TaskStatus.COMPLETED);
+    //     int totalTasks = taskRepository.countByEmployeeId(employee.getId());
+    //     int approvedDocs = documentRepository.countByEmployeeIdAndStatus(employee.getId(), DocumentStatus.APPROVED);
+        
+    //     List<DocumentType> mandatoryTypes = Arrays.stream(DocumentType.values())
+    //             .filter(DocumentType::isMandatory)
+    //             .collect(Collectors.toList());
+        
+    //     int totalItems = totalTasks + mandatoryTypes.size();
+    //     int completedItems = completedTasks + approvedDocs;
+        
+    //     return totalItems > 0 ? (completedItems * 100) / totalItems : 0;
+    // }
+
     private int calculateCompletionPercentage(Employee employee) {
-        int completedTasks = taskRepository.countByEmployeeIdAndStatus(employee.getId(), TaskStatus.COMPLETED);
-        int totalTasks = taskRepository.countByEmployeeId(employee.getId());
-        int approvedDocs = documentRepository.countByEmployeeIdAndStatus(employee.getId(), DocumentStatus.APPROVED);
-        
-        List<DocumentType> mandatoryTypes = Arrays.stream(DocumentType.values())
-                .filter(DocumentType::isMandatory)
-                .collect(Collectors.toList());
-        
-        int totalItems = totalTasks + mandatoryTypes.size();
-        int completedItems = completedTasks + approvedDocs;
-        
-        return totalItems > 0 ? (completedItems * 100) / totalItems : 0;
-    }
+    int completedTasks = taskRepository.countByEmployeeIdAndStatus(employee.getId(), TaskStatus.COMPLETED);
+    int totalTasks = taskRepository.countByEmployeeId(employee.getId());
+
+    // --- FIX STARTS HERE ---
+    
+    // 1. Get all mandatory document types
+    List<DocumentType> mandatoryTypes = Arrays.stream(DocumentType.values())
+            .filter(DocumentType::isMandatory)
+            .collect(Collectors.toList());
+
+    // 2. Count how many of those mandatory documents are approved
+    int approvedMandatoryDocs = documentRepository.countApprovedMandatoryDocuments(employee.getId(), mandatoryTypes);
+    
+    // --- FIX ENDS HERE ---
+
+    // 3. The total number of items is the sum of all tasks and all mandatory documents
+    int totalItems = totalTasks + mandatoryTypes.size();
+
+    // 4. The number of completed items is the sum of completed tasks and approved mandatory documents
+    int completedItems = completedTasks + approvedMandatoryDocs;
+    
+    return totalItems > 0 ? (completedItems * 100) / totalItems : 0;
+}
 
     private String getNextAction(Employee employee) {
         long pendingTasks = taskRepository.countByEmployeeIdAndStatus(employee.getId(), TaskStatus.PENDING);
