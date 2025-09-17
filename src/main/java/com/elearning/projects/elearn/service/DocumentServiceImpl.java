@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,6 +22,8 @@ public class DocumentServiceImpl implements DocumentService {
     private final DocumentRepository documentRepository;
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
+    // INJECT THE TASK REPOSITORY TO UPDATE THE TASK STATUS
+    private final OnboardingTaskRepository taskRepository;
 
     @Override
     public SuccessResponse submitDocuments(Long userId, DocumentSubmissionRequest request) {
@@ -110,6 +113,36 @@ public class DocumentServiceImpl implements DocumentService {
         
         documentRepository.save(document);
         
+        // --- START: NEW LOGIC TO AUTO-COMPLETE THE DOCUMENT SUBMISSION TASK ---
+        
+        // 1. Only check for task completion if the document was approved
+        if (request.status() == DocumentStatus.APPROVED) {
+            Employee employee = document.getEmployee();
+            List<Document> allEmployeeDocs = documentRepository.findByEmployee(employee);
+            
+            // 2. Check if all MANDATORY documents are now approved
+            boolean allMandatoryDocsApproved = allEmployeeDocs.stream()
+                    .filter(doc -> doc.getDocumentType().isMandatory())
+                    .allMatch(doc -> doc.getStatus() == DocumentStatus.APPROVED);
+            
+            if (allMandatoryDocsApproved) {
+                // 3. Find the associated "DOCUMENT_SUBMISSION" task
+                Optional<OnboardingTask> taskOptional = taskRepository.findByEmployeeAndTaskType(employee, TaskType.DOCUMENT_SUBMISSION);
+                
+                if (taskOptional.isPresent()) {
+                    OnboardingTask docTask = taskOptional.get();
+                    // 4. If the task is pending, mark it as completed
+                    if (docTask.getStatus() == TaskStatus.PENDING) {
+                        docTask.setStatus(TaskStatus.COMPLETED);
+                        docTask.setCompletedAt(LocalDateTime.now());
+                        docTask.setNotes("Automatically completed after all mandatory documents were approved by HR.");
+                        taskRepository.save(docTask);
+                    }
+                }
+            }
+        }
+        // --- END: NEW LOGIC ---
+
         String action = request.status() == DocumentStatus.APPROVED ? "approved" : "rejected";
         return new SuccessResponse("Document " + action + " successfully", LocalDateTime.now());
     }
